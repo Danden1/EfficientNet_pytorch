@@ -52,7 +52,27 @@ F<sub>sq</sub>는 H x W x C를 1 x 1 x C(평균)로 바꿔준다. pytorch 에서
 ## stochastic depth
 
 
+stochastic depth기법도 이용되었다. 이는 일정 확률로 block 자체를 건너뛴다.
 
 
 ## MBConv
+
+
+논문을 보면 MBConv를 이용한다.
+
+MBConv는 inverted residual을 이용한다.
+
+expand ratio 만큼 채널을 키우고, depthwise convoloution을 이용한다. 그리고 앞에서 언급했던 SEBlock을 이용해서 다시 원래 채널 크기로 되돌린다.
+
+그 다음은 커널 1짜리로 channel의 크기를 변경시켜주고, batch normalization을 해준다.
+
+끝으로 resnet처럼 input을 다시 더 해준다.
+
+
+
+코드는 이 유튜브를  작성하였다.
+
+https://www.youtube.com/watch?v=fR_0o25kigM
+
+
 
