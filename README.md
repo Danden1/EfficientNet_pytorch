@@ -1,3 +1,5 @@
+### 미완성
+
 # EfficientNet_pytorch
 
 paper : https://arxiv.org/abs/1905.11946 
