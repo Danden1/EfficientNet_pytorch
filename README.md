@@ -1,5 +1,3 @@
-### 미완성
-
 # EfficientNet_pytorch
 
 paper : https://arxiv.org/abs/1905.11946 
@@ -72,7 +70,7 @@ expand ratio 만큼 채널을 키우고, depthwise convoloution을 이용한다.
 
 
 
-코드는 이 유튜브를  작성하였다.
+코드는 이 유튜브를  작성하였다. 매우 간단한 코드이고, 개인 공부용이다. cifar100을 이용했다.
 
 https://www.youtube.com/watch?v=fR_0o25kigM
 
