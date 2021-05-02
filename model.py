@@ -37,21 +37,22 @@ class CNNBlock(nn.Module):
         return self.silu(self.bn(self.cnn(x)))
 
 class SEBlock(nn.Module):
-    def __init__(self,  in_channels, out_channels, reduced_ratio=4):
+    def __init__(self,  in_channels, out_channels):
         super(SEBlock,self).__init__()
         self.se = nn.Sequential(
             nn.AdaptiveAvgPool2d(1), # C x H x W -> C x 1 x 1
-            nn.Conv2d(in_channels,out_channels//reduced_ratio,kernel_size=1),
-            nn.SiLu(),
-            nn.Conv2d(out_channels//reduced_ratio, in_channels, kernel_size=1),
+            nn.Conv2d(in_channels,out_channels,1),
+            nn.SiLU(),
+            nn.Conv2d(out_channels, in_channels, 1),
             nn.Sigmoid()
         )
 
     def forward(self,x):
         return x*self.se(x)
+
 class MBConv(nn.Module):
     # p is dropping residual(stochastic depth)
-    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, expand_ratio,p=0.8):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, expand_ratio,r=4,p=0.8):
         super(MBConv, self).__init__()
 
 
@@ -67,11 +68,11 @@ class MBConv(nn.Module):
         self.expand = in_channels != hidden_dim
 
         if self.expand:
-            self.expand_conv = CNNBlock(in_channels, hidden_dim, kernel_size=3, stride=stride, padding=1)
+            self.expand_conv = CNNBlock(in_channels, hidden_dim, kernel_size=3, stride=1, padding=1)
 
         self.conv = nn.Sequential(
             CNNBlock(hidden_dim,hidden_dim,kernel_size,stride,padding,groups=hidden_dim),
-            SEBlock(hidden_dim,in_channels),
+            SEBlock(hidden_dim,int(in_channels/r)),
             nn.Conv2d(hidden_dim,out_channels,1,bias=False),
             nn.BatchNorm2d(out_channels)
         )
@@ -79,13 +80,14 @@ class MBConv(nn.Module):
     def forward(self, inputs):
 
         #stochastic depth
-        if self.training:
-            if not torch.bernoulli(self.p):
-                return inputs
+
 
         x = self.expand_conv(inputs) if self.expand else inputs
 
         if self.use_residual:
+            if self.training:
+                if not torch.bernoulli(torch.tensor(self.p).float()) and not self.training:
+                    return inputs
             return self.conv(x) + inputs
         else:
             return self.conv(x)
@@ -96,6 +98,9 @@ class EfficientNet(nn.Module):
         width_factor, depth_factor, dropout_rate = self.init_factor(version)
         last_channels = ceil(1280*width_factor)
         self.pool = nn.AdaptiveAvgPool2d(1)
+        self.features = self.Conv1(width_factor,depth_factor,last_channels)
+        self.classifier = nn.Sequential(nn.Dropout(dropout_rate), nn.Linear(last_channels,num_classes))
+
 
     def init_factor(self,version, alpha=1.2, beta = 1.1):
         phi, res, drop_rate = phi_values[version]
@@ -126,4 +131,4 @@ class EfficientNet(nn.Module):
 
     def forward(self,x):
         x = self.pool(self.features(x))
-        return self.clssifier(x.view(x.shape[0],-1))
+        return self.classifier(x.view(x.shape[0],-1))
