@@ -77,4 +77,7 @@ https://www.youtube.com/watch?v=fR_0o25kigM
 매우 간단한 코드이고, 개인 공부용이다. cifar100을 이용했다.
 
 
+#### 2021.05.03
+epoch은 200이고 별다른 옵션은 주지 않았다. test accuracy는 약 53%정도 나오는데, hyper parameter의 적절한 튜닝과 다양한 기법을 추가해야 될 것 같다.
+
 
